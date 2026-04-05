@@ -19,7 +19,7 @@ brew install --cask keshav-k3/tap/pokebar
   <table>
     <tr>
       <td valign="top"><img src="demo/demo-chars.png" width="280" alt="Choose your Pokémon — character options" /></td>
-      <td valign="middle">&nbsp;|&nbsp;</td>
+      <td valign="middle">&nbsp;👉&nbsp;</td>
       <td valign="top"><img src="demo/demo-monitor.png" width="280" alt="Choose your Pokémon — menu bar monitor" /></td>
     </tr>
   </table>
