@@ -24,3 +24,11 @@ brew install --cask keshav-k3/tap/pokebar
     </tr>
   </table>
 </div>
+
+**macOS “damaged” or won’t open:** PokeBar is not Apple-notarized. After install, clear quarantine once:
+
+```bash
+xattr -dr com.apple.quarantine /Applications/PokeBar.app
+```
+
+You can also try **right-click → Open** on `PokeBar.app` the first time.
