@@ -6,6 +6,8 @@
 	<string>en</string>
 	<key>CFBundleExecutable</key>
 	<string>PokeBar</string>
+	<key>CFBundleIconFile</key>
+	<string>logo</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.keshavk3.pokebar</string>
 	<key>CFBundleInfoDictionaryVersion</key>
