@@ -41,6 +41,12 @@ class PokemonManager: ObservableObject {
             return URL(fileURLWithPath: path)
         }
 
+        // Packaged .app copies sprites under Contents/Resources/Sprites (see create-dmg.sh) even when the
+        // SPM helper bundle is missing; Bundle.main covers that layout.
+        if let url = Bundle.main.url(forResource: name, withExtension: ext, subdirectory: "Sprites") {
+            return url
+        }
+
         let directPath = FileManager.default.currentDirectoryPath
             + "/PokeBar/Resources/Sprites/\(filename)"
         if FileManager.default.fileExists(atPath: directPath) {
