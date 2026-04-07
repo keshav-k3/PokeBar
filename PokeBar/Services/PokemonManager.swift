@@ -33,23 +33,30 @@ class PokemonManager: ObservableObject {
 
     /// URL to a file in `Resources/Sprites` inside the app or dev tree.
     func urlForSprite(named filename: String) -> URL? {
-        let base = filename as NSString
-        let name = base.deletingPathExtension
-        let ext = base.pathExtension
+        // Avoid Bundle.module directly: its generated accessor traps if the helper bundle is missing.
+        // Search the helper bundle and direct app resource layouts defensively.
+        let fm = FileManager.default
+        var candidatePaths: [String] = []
+        if let resourcePath = Bundle.main.resourcePath {
+            // SwiftPM helper bundle packaged under Contents/Resources.
+            candidatePaths.append("\(resourcePath)/PokeBar_PokeBar.bundle/Resources/Sprites/\(filename)")
+            // Direct Resources layout (preferred for packaged app).
+            candidatePaths.append("\(resourcePath)/Sprites/\(filename)")
+            // Nested Resources/Resources layout (current create-dmg.sh copy behavior).
+            candidatePaths.append("\(resourcePath)/Resources/Sprites/\(filename)")
+        }
+        if let executablePath = Bundle.main.executableURL?.deletingLastPathComponent().path {
+            // SwiftPM helper bundle placed next to executable (older/local packaging scripts).
+            candidatePaths.append("\(executablePath)/PokeBar_PokeBar.bundle/Resources/Sprites/\(filename)")
+        }
 
-        if let path = Bundle.module.path(forResource: name, ofType: ext, inDirectory: "Resources/Sprites") {
+        for path in candidatePaths where fm.fileExists(atPath: path) {
             return URL(fileURLWithPath: path)
         }
 
-        // Packaged .app copies sprites under Contents/Resources/Sprites (see create-dmg.sh) even when the
-        // SPM helper bundle is missing; Bundle.main covers that layout.
-        if let url = Bundle.main.url(forResource: name, withExtension: ext, subdirectory: "Sprites") {
-            return url
-        }
-
-        let directPath = FileManager.default.currentDirectoryPath
+        let directPath = fm.currentDirectoryPath
             + "/PokeBar/Resources/Sprites/\(filename)"
-        if FileManager.default.fileExists(atPath: directPath) {
+        if fm.fileExists(atPath: directPath) {
             return URL(fileURLWithPath: directPath)
         }
 
