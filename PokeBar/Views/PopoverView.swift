@@ -123,11 +123,14 @@ struct PopoverView: View {
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundStyle(.secondary)
 
-            LazyVGrid(columns: gridColumns, spacing: 10) {
-                ForEach(Pokemon.available) { pokemon in
-                    embeddedPokemonCell(pokemon)
+            ScrollView {
+                LazyVGrid(columns: gridColumns, spacing: 10) {
+                    ForEach(Pokemon.available) { pokemon in
+                        embeddedPokemonCell(pokemon)
+                    }
                 }
             }
+            .frame(maxHeight: 320)
         }
         .padding(.top, 4)
     }

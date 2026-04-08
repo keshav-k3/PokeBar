@@ -12,12 +12,18 @@ struct Pokemon: Identifiable, Codable, Equatable {
     let name: String
     let displayName: String
 
-    /// Alpha: four sleeping starters (menu bar = sleep sheet PNG frames; popover = static PNG).
+    /// Available roster (menu bar = sleep sheet PNG frames; popover = static PNG).
     static let available: [Pokemon] = [
         Pokemon(id: "pikachu", name: "Pikachu", displayName: "Pikachu"),
         Pokemon(id: "charmander", name: "Charmander", displayName: "Charmander"),
         Pokemon(id: "squirtle", name: "Squirtle", displayName: "Squirtle"),
-        Pokemon(id: "bulbasaur", name: "Bulbasaur", displayName: "Bulbasaur")
+        Pokemon(id: "bulbasaur", name: "Bulbasaur", displayName: "Bulbasaur"),
+        Pokemon(id: "jigglypuff", name: "Jigglypuff", displayName: "Jigglypuff"),
+        Pokemon(id: "psyduck", name: "Psyduck", displayName: "Psyduck"),
+        Pokemon(id: "eevee", name: "Eevee", displayName: "Eevee"),
+        Pokemon(id: "oshawott", name: "Oshawott", displayName: "Oshawott"),
+        Pokemon(id: "dragonite", name: "Dragonite", displayName: "Dragonite"),
+        Pokemon(id: "snorlax", name: "Snorlax", displayName: "Snorlax")
     ]
 
     static var `default`: Pokemon {
