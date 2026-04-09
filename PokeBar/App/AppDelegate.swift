@@ -14,6 +14,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var pokemonManager: PokemonManager?
     private let preferences = UserPreferences.shared
     private let updater = UpdaterService.shared
+    private let locationPermission = LocationPermissionManager.shared
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Hide dock icon - we're a menubar-only app
@@ -36,6 +37,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         )
         menuBarController?.reloadMenubarAnimation()
 
+        locationPermission.requestPermissionIfNeeded()
         systemMonitor?.startMonitoring()
     }
 

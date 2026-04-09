@@ -21,7 +21,7 @@ final class UpdaterService {
     private init() {
         #if canImport(Sparkle)
         controller = SPUStandardUpdaterController(
-            startingUpdater: true,
+            startingUpdater: false,
             updaterDelegate: nil,
             userDriverDelegate: nil
         )

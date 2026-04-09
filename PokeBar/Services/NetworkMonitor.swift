@@ -11,6 +11,7 @@ import Darwin
 
 struct NetworkSnapshot {
     let wifiSSID: String?
+    let wifiConnected: Bool
     let localIPAddress: String?
     let uploadMbps: Double?
     let downloadMbps: Double?
@@ -20,12 +21,17 @@ final class NetworkMonitor {
     private var previousInBytes: UInt64?
     private var previousOutBytes: UInt64?
     private var previousSampleDate: Date?
+    private var cachedFallbackSSID: String?
+    private var lastFallbackSSIDLookup: Date?
 
     func snapshot() -> NetworkSnapshot {
         let now = Date()
-        let ssid = CWWiFiClient.shared().interface()?.ssid()
+        let interfaces = CWWiFiClient.shared().interfaces() ?? []
+        let coreWlanSSID = interfaces.compactMap { $0.ssid() }.first
+        let ssid = sanitizeSSID(coreWlanSSID) ?? fallbackSSID(now: now)
         let ip = currentLocalIPAddress()
         let counters = interfaceByteCounters()
+        let wifiConnected = ssid != nil || (interfaces.contains { $0.powerOn() } && ip != nil)
 
         var upload: Double?
         var download: Double?
@@ -50,6 +56,7 @@ final class NetworkMonitor {
 
         return NetworkSnapshot(
             wifiSSID: ssid,
+            wifiConnected: wifiConnected,
             localIPAddress: ip,
             uploadMbps: upload,
             downloadMbps: download
@@ -118,5 +125,148 @@ final class NetworkMonitor {
         }
 
         return found ? (totalIn, totalOut) : nil
+    }
+
+    private func fallbackSSID(now: Date) -> String? {
+        // Avoid spawning subprocesses every 1s monitor tick.
+        if let last = lastFallbackSSIDLookup, now.timeIntervalSince(last) < 15 {
+            return cachedFallbackSSID
+        }
+        lastFallbackSSIDLookup = now
+
+        if let ssid = fallbackSSIDFromAirportTool() {
+            let clean = sanitizeSSID(ssid)
+            cachedFallbackSSID = clean
+            return clean
+        }
+
+        if let ssid = fallbackSSIDFromNetworkSetup() {
+            let clean = sanitizeSSID(ssid)
+            cachedFallbackSSID = clean
+            return clean
+        }
+
+        if let ssid = fallbackSSIDFromIPConfigSummary() {
+            let clean = sanitizeSSID(ssid)
+            cachedFallbackSSID = clean
+            return clean
+        }
+
+        cachedFallbackSSID = nil
+        return nil
+    }
+
+    private func fallbackSSIDFromAirportTool() -> String? {
+        let airportCandidates = [
+            "/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport",
+            "/System/Library/PrivateFrameworks/Apple80211.framework/Versions/A/Resources/airport"
+        ]
+        guard let airportPath = airportCandidates.first(where: { FileManager.default.fileExists(atPath: $0) }) else {
+            return nil
+        }
+
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: airportPath)
+        process.arguments = ["-I"]
+
+        let output = Pipe()
+        process.standardOutput = output
+        process.standardError = Pipe()
+
+        do {
+            try process.run()
+            process.waitUntilExit()
+        } catch {
+            return nil
+        }
+
+        guard process.terminationStatus == 0 else {
+            return nil
+        }
+
+        let data = output.fileHandleForReading.readDataToEndOfFile()
+        guard let text = String(data: data, encoding: .utf8) else {
+            return nil
+        }
+
+        let ssidLine = text
+            .split(separator: "\n")
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .first { $0.hasPrefix("SSID:") && !$0.hasPrefix("SSID BSSID:") }
+
+        let ssid = ssidLine?
+            .replacingOccurrences(of: "SSID:", with: "")
+            .trimmingCharacters(in: .whitespaces)
+        return (ssid?.isEmpty == false) ? ssid : nil
+    }
+
+    private func fallbackSSIDFromNetworkSetup() -> String? {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/sbin/networksetup")
+        process.arguments = ["-getairportnetwork", "en0"]
+
+        let output = Pipe()
+        process.standardOutput = output
+        process.standardError = Pipe()
+
+        do {
+            try process.run()
+            process.waitUntilExit()
+        } catch {
+            return nil
+        }
+
+        guard process.terminationStatus == 0 else { return nil }
+        let data = output.fileHandleForReading.readDataToEndOfFile()
+        guard let text = String(data: data, encoding: .utf8)?
+            .trimmingCharacters(in: .whitespacesAndNewlines),
+              text.hasPrefix("Current Wi-Fi Network:") else {
+            return nil
+        }
+        let ssid = text.replacingOccurrences(of: "Current Wi-Fi Network:", with: "")
+            .trimmingCharacters(in: .whitespaces)
+        return ssid.isEmpty ? nil : ssid
+    }
+
+    private func fallbackSSIDFromIPConfigSummary() -> String? {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/sbin/ipconfig")
+        process.arguments = ["getsummary", "en0"]
+
+        let output = Pipe()
+        process.standardOutput = output
+        process.standardError = Pipe()
+
+        do {
+            try process.run()
+            process.waitUntilExit()
+        } catch {
+            return nil
+        }
+
+        guard process.terminationStatus == 0 else { return nil }
+        let data = output.fileHandleForReading.readDataToEndOfFile()
+        guard let text = String(data: data, encoding: .utf8) else { return nil }
+
+        let ssidLine = text
+            .split(separator: "\n")
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .first { $0.hasPrefix("SSID :") || $0.hasPrefix("SSID:") }
+
+        guard let ssidLine else { return nil }
+        let ssid = ssidLine
+            .replacingOccurrences(of: "SSID :", with: "")
+            .replacingOccurrences(of: "SSID:", with: "")
+            .trimmingCharacters(in: .whitespaces)
+        return ssid.isEmpty ? nil : ssid
+    }
+
+    private func sanitizeSSID(_ ssid: String?) -> String? {
+        guard let raw = ssid?.trimmingCharacters(in: .whitespacesAndNewlines), !raw.isEmpty else {
+            return nil
+        }
+        let lowered = raw.lowercased()
+        let blockedValues: Set<String> = ["<redacted>", "redacted", "<hidden>", "hidden", "<private>"]
+        return blockedValues.contains(lowered) ? nil : raw
     }
 }

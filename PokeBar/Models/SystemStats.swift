@@ -15,6 +15,7 @@ struct SystemStats {
     var diskReadMBps: Double = 0.0
     var diskWriteMBps: Double = 0.0
     var wifiSSID: String?
+    var wifiConnected: Bool = false
     var localIPAddress: String?
     var publicIPAddress: String?
     var uploadMbps: Double?
@@ -38,7 +39,7 @@ struct SystemStats {
     }
 
     var formattedNetworkName: String {
-        wifiSSID ?? "Not connected"
+        wifiConnected ? "Connected" : "Not connected"
     }
 
     var formattedLocalIP: String {

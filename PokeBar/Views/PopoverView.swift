@@ -213,7 +213,7 @@ private struct NetworkCard: View {
     let language: AppLanguage
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Label(L10n.tr("stats.network", language: language), systemImage: "wifi")
                     .font(.system(size: 13, weight: .semibold))
@@ -223,10 +223,33 @@ private struct NetworkCard: View {
                     .foregroundStyle(.secondary)
             }
 
-            networkRow(title: L10n.tr("stats.localIp", language: language), value: stats.formattedLocalIP)
-            networkRow(title: L10n.tr("stats.publicIp", language: language), value: stats.formattedPublicIP)
-            networkRow(title: L10n.tr("stats.download", language: language), value: stats.formattedDownloadSpeed)
-            networkRow(title: L10n.tr("stats.upload", language: language), value: stats.formattedUploadSpeed)
+            HStack(spacing: 6) {
+                Image(systemName: "globe")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                Text(L10n.tr("stats.publicIp", language: language))
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Text(stats.formattedPublicIP)
+                    .font(.system(size: 13, weight: .semibold, design: .monospaced))
+                    .lineLimit(1)
+            }
+
+            HStack(spacing: 10) {
+                transferTile(
+                    icon: "arrow.down.circle.fill",
+                    title: L10n.tr("stats.download", language: language),
+                    value: stats.formattedDownloadSpeed,
+                    accent: .blue
+                )
+                transferTile(
+                    icon: "arrow.up.circle.fill",
+                    title: L10n.tr("stats.upload", language: language),
+                    value: stats.formattedUploadSpeed,
+                    accent: .green
+                )
+            }
         }
         .padding(10)
         .background(
@@ -235,15 +258,27 @@ private struct NetworkCard: View {
         )
     }
 
-    private func networkRow(title: String, value: String) -> some View {
-        HStack {
-            Text(title)
-                .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(.secondary)
-            Spacer()
+    private func transferTile(icon: String, title: String, value: String, accent: Color) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 6) {
+                Image(systemName: icon)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(accent)
+                Text(title)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(.secondary)
+            }
             Text(value)
-                .font(.system(size: 12, weight: .semibold, design: .monospaced))
+                .font(.system(size: 14, weight: .semibold, design: .monospaced))
+                .lineLimit(1)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, 8)
+        .padding(.horizontal, 10)
+        .background(
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .fill(Color.primary.opacity(0.05))
+        )
     }
 }
 

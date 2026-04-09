@@ -160,6 +160,7 @@ class SystemMonitor: ObservableObject {
     private func updateNetworkStats() {
         let network = networkMonitor.snapshot()
         stats.wifiSSID = network.wifiSSID
+        stats.wifiConnected = network.wifiConnected
         stats.localIPAddress = network.localIPAddress
         stats.uploadMbps = network.uploadMbps
         stats.downloadMbps = network.downloadMbps

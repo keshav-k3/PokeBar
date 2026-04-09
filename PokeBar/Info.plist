@@ -31,6 +31,8 @@
 	<true/>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright © 2026 PokeBar. Sprite artwork: Spike Chunsoft Co., Ltd.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>PokeBar uses location permission to read the current Wi-Fi network name (SSID) for display in the Network card.</string>
 	<key>NSMainStoryboardFile</key>
 	<string></string>
 	<key>NSPrincipalClass</key>
