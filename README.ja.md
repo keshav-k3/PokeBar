@@ -1,12 +1,14 @@
 # PokeBar
 
-![Version](https://img.shields.io/badge/version-v2-blue)
-![Languages](https://img.shields.io/badge/languages-EN%20%7C%20JP-success)
+<p align="center">
+  <img alt="Version" src="https://img.shields.io/badge/version-v2-blue" />
+  <img alt="Languages" src="https://img.shields.io/badge/languages-EN%20%7C%20JP-success" />
+</p>
 
 <div align="center">
   <h3>ポケモン風の macOS メニューバー システムモニター</h3>
   <p>メニューバーで眠るポケモン、ポップオーバーで CPU / メモリ / ネットワークを表示。</p>
-  <img src="demo/demo.gif" alt="PokeBar デモ" />
+  <img src="demo/demo-v2.gif" alt="PokeBar デモ" />
 </div>
 
 English README: [README.md](README.md)
