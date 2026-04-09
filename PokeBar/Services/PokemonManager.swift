@@ -11,6 +11,7 @@ import AppKit
 class PokemonManager: ObservableObject {
     @Published var currentPokemon: Pokemon
     private let preferences: UserPreferences
+    private var staticImageCache: [String: NSImage] = [:]
 
     /// Fired after the user selects a different Pokémon (and on programmatic changes).
     var onPokemonSelectionChanged: ((Pokemon) -> Void)?
@@ -85,7 +86,12 @@ class PokemonManager: ObservableObject {
     }
 
     private func loadImage(named name: String) -> NSImage? {
+        if let cached = staticImageCache[name] {
+            return cached
+        }
         guard let url = urlForSprite(named: name) else { return nil }
-        return NSImage(contentsOf: url)
+        guard let image = NSImage(contentsOf: url) else { return nil }
+        staticImageCache[name] = image
+        return image
     }
 }
