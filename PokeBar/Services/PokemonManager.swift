@@ -10,12 +10,13 @@ import AppKit
 
 class PokemonManager: ObservableObject {
     @Published var currentPokemon: Pokemon
-    private let preferences = UserPreferences()
+    private let preferences: UserPreferences
 
     /// Fired after the user selects a different Pokémon (and on programmatic changes).
     var onPokemonSelectionChanged: ((Pokemon) -> Void)?
 
-    init() {
+    init(preferences: UserPreferences = .shared) {
+        self.preferences = preferences
         let savedID = preferences.selectedPokemon
         if let pokemon = Pokemon.available.first(where: { $0.id == savedID }) {
             currentPokemon = pokemon

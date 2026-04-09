@@ -1,0 +1,48 @@
+"menu.about" = "PokeBarについて";
+"menu.changePokemon" = "ポケモンを変更...";
+"menu.preferences" = "設定...";
+"menu.checkUpdates" = "アップデートを確認...";
+"menu.quit" = "PokeBarを終了";
+
+"common.done" = "完了";
+
+"popover.systemMonitor" = "システムモニター";
+"popover.changePokemon" = "ポケモンを変更";
+"popover.choosePokemon" = "ポケモンを選択";
+
+"stats.cpu" = "CPU";
+"stats.memory" = "メモリ";
+"stats.network" = "ネットワーク";
+"stats.localIp" = "ローカルIP";
+"stats.publicIp" = "グローバルIP";
+"stats.download" = "ダウンロード";
+"stats.upload" = "アップロード";
+
+"settings.generalTab" = "一般";
+"settings.languageTab" = "言語";
+"settings.general" = "一般";
+"settings.launchAtLogin" = "ログイン時に起動";
+"settings.launchAtLoginHelp" = "ログイン時にPokeBarを自動起動します";
+"settings.showInDock" = "Dockに表示";
+"settings.showInDockHelp" = "Dockにアプリのアイコンを表示します";
+"settings.performance" = "パフォーマンス";
+"settings.updateInterval" = "更新間隔";
+"settings.updateIntervalHelp" = "システム統計の更新頻度を設定します";
+"settings.notifications" = "通知";
+"settings.enableNotifications" = "通知を有効化";
+"settings.enableNotificationsHelp" = "高負荷時の通知（今後対応予定）";
+"settings.tagline" = "ポケモンテーマのシステムモニター";
+"settings.language" = "言語";
+"settings.appLanguage" = "アプリ言語";
+"settings.appLanguageHelp" = "PokeBarで使用する言語を選択します";
+
+"pokemon.pikachu" = "ピカチュウ";
+"pokemon.charmander" = "ヒトカゲ";
+"pokemon.squirtle" = "ゼニガメ";
+"pokemon.bulbasaur" = "フシギダネ";
+"pokemon.jigglypuff" = "プリン";
+"pokemon.psyduck" = "コダック";
+"pokemon.eevee" = "イーブイ";
+"pokemon.oshawott" = "ミジュマル";
+"pokemon.dragonite" = "カイリュー";
+"pokemon.snorlax" = "カビゴン";
