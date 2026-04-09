@@ -11,6 +11,7 @@ struct PopoverView: View {
     @ObservedObject var sheet: PopoverSheetState
     @ObservedObject var systemMonitor: SystemMonitor
     @ObservedObject var pokemonManager: PokemonManager
+    @ObservedObject var preferences: UserPreferences
 
     let onQuit: () -> Void
 
@@ -33,7 +34,7 @@ struct PopoverView: View {
             }
         }
         .padding(14)
-        .frame(width: 308)
+        .frame(width: 388)
         .background {
             RoundedRectangle(cornerRadius: chromeRadius, style: .continuous)
                 .fill(.ultraThinMaterial)
@@ -57,9 +58,9 @@ struct PopoverView: View {
             }
 
             VStack(alignment: .leading, spacing: 3) {
-                Text(pokemonManager.currentPokemon.displayName)
+                Text(pokemonManager.currentPokemon.localizedDisplayName(language: preferences.appLanguage))
                     .font(.system(size: 17, weight: .semibold))
-                Text("System Monitor")
+                Text(L10n.tr("popover.systemMonitor", language: preferences.appLanguage))
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(.secondary)
             }
@@ -80,18 +81,19 @@ struct PopoverView: View {
         VStack(spacing: 12) {
             GlassStatRow(
                 icon: "cpu",
-                label: "CPU",
+                label: L10n.tr("stats.cpu", language: preferences.appLanguage),
                 value: systemMonitor.stats.formattedCPU,
                 percentage: systemMonitor.stats.cpuUsage,
                 accent: .blue
             )
             GlassStatRow(
                 icon: "memorychip",
-                label: "RAM",
+                label: L10n.tr("stats.memory", language: preferences.appLanguage),
                 value: systemMonitor.stats.formattedMemory,
                 percentage: systemMonitor.stats.memoryPercentage,
                 accent: .green
             )
+            NetworkCard(stats: systemMonitor.stats, language: preferences.appLanguage)
         }
         .padding(12)
         .background {
@@ -107,19 +109,21 @@ struct PopoverView: View {
     private var buttonRow: some View {
         HStack(spacing: 10) {
             glassButton(
-                title: sheet.showPokemonPicker ? "Done" : "Change Pokémon",
+                title: sheet.showPokemonPicker
+                    ? L10n.tr("common.done", language: preferences.appLanguage)
+                    : L10n.tr("popover.changePokemon", language: preferences.appLanguage),
                 prominent: true,
                 action: {
                     sheet.showPokemonPicker.toggle()
                 }
             )
-            glassButton(title: "Quit", prominent: false, action: onQuit)
+            glassButton(title: L10n.tr("menu.quit", language: preferences.appLanguage), prominent: false, action: onQuit)
         }
     }
 
     private var pokemonPickerSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Choose Pokémon")
+            Text(L10n.tr("popover.choosePokemon", language: preferences.appLanguage))
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundStyle(.secondary)
 
@@ -157,7 +161,7 @@ struct PopoverView: View {
                 .frame(height: 72)
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
 
-                Text(pokemon.displayName)
+                Text(pokemon.localizedDisplayName(language: preferences.appLanguage))
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(.primary)
                     .lineLimit(1)
@@ -198,6 +202,45 @@ struct PopoverView: View {
         .overlay {
             RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .strokeBorder(Color.primary.opacity(prominent ? 0.15 : 0.1), lineWidth: 1)
+        }
+    }
+}
+
+private struct NetworkCard: View {
+    let stats: SystemStats
+    let language: AppLanguage
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Label(L10n.tr("stats.network", language: language), systemImage: "wifi")
+                    .font(.system(size: 13, weight: .semibold))
+                Spacer()
+                Text(stats.formattedNetworkName)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(.secondary)
+            }
+
+            networkRow(title: L10n.tr("stats.localIp", language: language), value: stats.formattedLocalIP)
+            networkRow(title: L10n.tr("stats.publicIp", language: language), value: stats.formattedPublicIP)
+            networkRow(title: L10n.tr("stats.download", language: language), value: stats.formattedDownloadSpeed)
+            networkRow(title: L10n.tr("stats.upload", language: language), value: stats.formattedUploadSpeed)
+        }
+        .padding(10)
+        .background(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(Color.primary.opacity(0.04))
+        )
+    }
+
+    private func networkRow(title: String, value: String) -> some View {
+        HStack {
+            Text(title)
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(.secondary)
+            Spacer()
+            Text(value)
+                .font(.system(size: 12, weight: .semibold, design: .monospaced))
         }
     }
 }
