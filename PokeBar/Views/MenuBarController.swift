@@ -88,9 +88,9 @@ class MenuBarController: NSObject, NSPopoverDelegate {
 
     private func setupPopover() {
         popover = NSPopover()
-        popover?.contentSize = NSSize(width: 420, height: 500)
+        popover?.contentSize = NSSize(width: 440, height: 560)
         popover?.behavior = .transient
-        popover?.animates = true
+        popover?.animates = false
         popover?.delegate = self
 
         let host = NSHostingController(
@@ -101,6 +101,9 @@ class MenuBarController: NSObject, NSPopoverDelegate {
                 preferences: preferences,
                 onQuit: { [weak self] in
                     self?.quitApp()
+                },
+                onPokemonPicked: { [weak self] in
+                    self?.popover?.performClose(nil)
                 }
             )
         )
@@ -114,8 +117,8 @@ class MenuBarController: NSObject, NSPopoverDelegate {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] expanded in
                 self?.popover?.contentSize = expanded
-                    ? NSSize(width: 420, height: 660)
-                    : NSSize(width: 420, height: 500)
+                    ? NSSize(width: 860, height: 730)
+                    : NSSize(width: 440, height: 560)
             }
     }
 
