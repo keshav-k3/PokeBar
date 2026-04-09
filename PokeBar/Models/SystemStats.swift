@@ -20,6 +20,9 @@ struct SystemStats {
     var publicIPAddress: String?
     var uploadMbps: Double?
     var downloadMbps: Double?
+    var batteryLevel: Double? // 0–100, nil if no battery
+    var isCharging: Bool = false
+    var isPluggedIn: Bool = false
 
     var memoryPercentage: Double {
         guard memoryTotalGB > 0 else { return 0 }
@@ -58,5 +61,12 @@ struct SystemStats {
     var formattedDownloadSpeed: String {
         guard let downloadMbps else { return "—" }
         return String(format: "%.2f Mbps", max(downloadMbps, 0))
+    }
+
+    var hasBattery: Bool { batteryLevel != nil }
+
+    var formattedBattery: String {
+        guard let level = batteryLevel else { return "—" }
+        return String(format: "%.0f%%", level)
     }
 }

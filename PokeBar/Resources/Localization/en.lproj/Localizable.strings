@@ -19,6 +19,10 @@
 "stats.publicIp" = "Public IP";
 "stats.download" = "Download";
 "stats.upload" = "Upload";
+"stats.battery" = "Battery";
+"stats.batteryCharging" = "Charging";
+"stats.batteryPluggedIn" = "Plugged In";
+"stats.batteryOnBattery" = "On Battery";
 
 "settings.generalTab" = "General";
 "settings.languageTab" = "Language";

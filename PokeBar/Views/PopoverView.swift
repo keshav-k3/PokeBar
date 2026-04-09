@@ -150,6 +150,9 @@ struct PopoverView: View {
                 history: systemMonitor.memoryHistory
             )
             NetworkCard(stats: systemMonitor.stats, language: preferences.appLanguage)
+            if systemMonitor.stats.hasBattery {
+                BatteryCard(stats: systemMonitor.stats, language: preferences.appLanguage)
+            }
         }
         .padding(12)
         .background {
@@ -432,6 +435,76 @@ private struct NetworkCard: View {
         .background(
             RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .fill(Color.primary.opacity(0.05))
+        )
+    }
+}
+
+private struct BatteryCard: View {
+    let stats: SystemStats
+    let language: AppLanguage
+
+    private var level: Double { stats.batteryLevel ?? 0 }
+
+    private var accent: Color {
+        if level > 50 { return .green }
+        if level > 20 { return .orange }
+        return .red
+    }
+
+    private var statusText: String {
+        if stats.isCharging {
+            return L10n.tr("stats.batteryCharging", language: language)
+        }
+        return stats.isPluggedIn
+            ? L10n.tr("stats.batteryPluggedIn", language: language)
+            : L10n.tr("stats.batteryOnBattery", language: language)
+    }
+
+    private var statusIcon: String {
+        if stats.isCharging { return "bolt.fill" }
+        return stats.isPluggedIn ? "powerplug.fill" : "battery.0"
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Label(L10n.tr("stats.battery", language: language), systemImage: "battery.100")
+                    .font(.system(size: 13, weight: .semibold))
+                Spacer()
+                HStack(spacing: 4) {
+                    Image(systemName: statusIcon)
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(stats.isCharging ? .yellow : .secondary)
+                    Text(statusText)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            HStack(spacing: 8) {
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        Capsule()
+                            .fill(Color.primary.opacity(0.08))
+                            .frame(height: 7)
+                        Capsule()
+                            .fill(accent.opacity(0.9))
+                            .frame(width: max(4, geo.size.width * (level / 100.0)), height: 7)
+                            .animation(.easeInOut(duration: 0.28), value: level)
+                    }
+                }
+                .frame(height: 7)
+
+                Text(stats.formattedBattery)
+                    .font(.system(size: 13, weight: .semibold, design: .monospaced))
+                    .foregroundStyle(accent)
+                    .frame(width: 44, alignment: .trailing)
+            }
+        }
+        .padding(10)
+        .background(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(Color.primary.opacity(0.04))
         )
     }
 }

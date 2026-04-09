@@ -19,6 +19,10 @@
 "stats.publicIp" = "グローバルIP";
 "stats.download" = "ダウンロード";
 "stats.upload" = "アップロード";
+"stats.battery" = "バッテリー";
+"stats.batteryCharging" = "充電中";
+"stats.batteryPluggedIn" = "電源接続中";
+"stats.batteryOnBattery" = "バッテリー駆動";
 
 "settings.generalTab" = "一般";
 "settings.languageTab" = "言語";

@@ -7,6 +7,7 @@
 
 import Foundation
 import Darwin
+import IOKit.ps
 
 /// Polls Mach host statistics. Values are **indicative**, not identical to Activity Monitor’s
 /// internal accounting, but CPU is standard aggregate utilization; RAM uses a common
@@ -56,6 +57,7 @@ class SystemMonitor: ObservableObject {
         updateCPUUsage()
         updateMemoryUsage()
         updateNetworkStats()
+        updateBatteryStats()
         refreshPublicIPIfNeeded()
 
         DispatchQueue.main.async { [weak self] in
@@ -164,6 +166,27 @@ class SystemMonitor: ObservableObject {
         stats.localIPAddress = network.localIPAddress
         stats.uploadMbps = network.uploadMbps
         stats.downloadMbps = network.downloadMbps
+    }
+
+    private func updateBatteryStats() {
+        let snapshot = IOPSCopyPowerSourcesInfo().takeRetainedValue()
+        let sources = IOPSCopyPowerSourcesList(snapshot).takeRetainedValue() as [CFTypeRef]
+
+        for source in sources {
+            guard let info = IOPSGetPowerSourceDescription(snapshot, source)?.takeUnretainedValue() as? [String: Any],
+                  (info[kIOPSTypeKey] as? String) == kIOPSInternalBatteryType else { continue }
+
+            let current = info[kIOPSCurrentCapacityKey] as? Int ?? 0
+            let max = info[kIOPSMaxCapacityKey] as? Int ?? 100
+            stats.batteryLevel = max > 0 ? Double(current) / Double(max) * 100.0 : 0.0
+            stats.isCharging = info[kIOPSIsChargingKey] as? Bool ?? false
+            stats.isPluggedIn = (info[kIOPSPowerSourceStateKey] as? String) == kIOPSACPowerValue
+            return
+        }
+
+        stats.batteryLevel = nil
+        stats.isCharging = false
+        stats.isPluggedIn = false
     }
 
     private func refreshPublicIPIfNeeded() {
