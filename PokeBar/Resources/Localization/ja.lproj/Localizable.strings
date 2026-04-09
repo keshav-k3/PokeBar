@@ -9,6 +9,8 @@
 "popover.systemMonitor" = "システムモニター";
 "popover.changePokemon" = "ポケモンを変更";
 "popover.choosePokemon" = "ポケモンを選択";
+"popover.searchPokemon" = "ポケモン検索 (EN/JP)";
+"popover.noPokemonFound" = "ポケモンが見つかりません";
 
 "stats.cpu" = "CPU";
 "stats.memory" = "メモリ";
@@ -46,3 +48,4 @@
 "pokemon.oshawott" = "ミジュマル";
 "pokemon.dragonite" = "カイリュー";
 "pokemon.snorlax" = "カビゴン";
+"popover.pokemonButton" = "ポケモン";

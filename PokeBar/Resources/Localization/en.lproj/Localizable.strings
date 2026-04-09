@@ -9,6 +9,8 @@
 "popover.systemMonitor" = "System Monitor";
 "popover.changePokemon" = "Change Pokemon";
 "popover.choosePokemon" = "Choose Pokemon";
+"popover.searchPokemon" = "Search Pokemon (EN/JP)";
+"popover.noPokemonFound" = "No Pokemon found";
 
 "stats.cpu" = "CPU";
 "stats.memory" = "RAM";
@@ -46,3 +48,4 @@
 "pokemon.oshawott" = "Oshawott";
 "pokemon.dragonite" = "Dragonite";
 "pokemon.snorlax" = "Snorlax";
+"popover.pokemonButton" = "Pokemon";
