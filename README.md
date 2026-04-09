@@ -1,12 +1,14 @@
 # PokeBar
 
-![Version](https://img.shields.io/badge/version-v2-blue)
-![Languages](https://img.shields.io/badge/languages-EN%20%7C%20JP-success)
+<p align="center">
+  <img alt="Version" src="https://img.shields.io/badge/version-v2-blue" />
+  <img alt="Languages" src="https://img.shields.io/badge/languages-EN%20%7C%20JP-success" />
+</p>
 
 <div align="center">
   <h3>Pokémon-themed macOS menu bar system monitor</h3>
   <p>Sleeping Pokémon in the menu bar; CPU, RAM, and Network stats in the popover.</p>
-  <img src="demo/demo.gif" alt="PokeBar demo" />
+  <img src="demo/demo-v2.gif" alt="PokeBar demo" />
 </div>
 
 Japanese README: [README.ja.md](README.ja.md)
