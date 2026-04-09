@@ -11,7 +11,7 @@
   <img src="demo/demo-v2.gif" alt="PokeBar デモ" />
 </div>
 
-English README: [README.md](README.md)
+English [README.md](README.md)
 
 **Homebrew:**
 
