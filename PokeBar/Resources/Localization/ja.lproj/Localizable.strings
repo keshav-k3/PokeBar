@@ -11,6 +11,7 @@
 "popover.choosePokemon" = "ポケモンを選択";
 "popover.searchPokemon" = "ポケモン検索 (EN/JP)";
 "popover.noPokemonFound" = "ポケモンが見つかりません";
+"popover.partyAutoRotate" = "自動ローテーション中";
 
 "stats.cpu" = "CPU";
 "stats.memory" = "メモリ";

@@ -64,33 +64,37 @@ struct PopoverView: View {
     }
 
     private var header: some View {
-        HStack(alignment: .center, spacing: 12) {
-            if let image = pokemonManager.popoverStaticImage(for: pokemonManager.currentPokemon) {
-                Image(nsImage: image)
-                    .resizable()
-                    .interpolation(.none)
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 52, height: 52)
-                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .center, spacing: 12) {
+                if let image = pokemonManager.popoverStaticImage(for: pokemonManager.currentPokemon) {
+                    Image(nsImage: image)
+                        .resizable()
+                        .interpolation(.none)
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 52, height: 52)
+                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                }
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(pokemonManager.currentPokemon.localizedDisplayName(language: preferences.appLanguage))
+                        .font(.system(size: 17, weight: .semibold))
+                    Text(L10n.tr("popover.systemMonitor", language: preferences.appLanguage))
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(.secondary)
+                }
+                Spacer(minLength: 8)
+                HStack(spacing: 8) {
+                    pokeballHeaderButton
+                    iconControlButton(systemName: "gearshape.fill") {
+                        showLanguageMenu.toggle()
+                    }
+                    iconControlButton(systemName: "power") {
+                        onQuit()
+                    }
+                }
             }
 
-            VStack(alignment: .leading, spacing: 3) {
-                Text(pokemonManager.currentPokemon.localizedDisplayName(language: preferences.appLanguage))
-                    .font(.system(size: 17, weight: .semibold))
-                Text(L10n.tr("popover.systemMonitor", language: preferences.appLanguage))
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(.secondary)
-            }
-            Spacer(minLength: 8)
-            HStack(spacing: 8) {
-                pokeballHeaderButton
-                iconControlButton(systemName: "gearshape.fill") {
-                    showLanguageMenu.toggle()
-                }
-                iconControlButton(systemName: "power") {
-                    onQuit()
-                }
-            }
+            partyRow
         }
         .padding(12)
         .background {
@@ -100,6 +104,50 @@ struct PopoverView: View {
         .overlay {
             RoundedRectangle(cornerRadius: innerRadius, style: .continuous)
                 .strokeBorder(Color(red: 0.44, green: 0.30, blue: 0.42).opacity(0.18), lineWidth: 1)
+        }
+    }
+
+    private var partyRow: some View {
+        HStack(spacing: 6) {
+            ForEach(0..<3, id: \.self) { slot in
+                if slot < pokemonManager.party.count {
+                    let pokemon = pokemonManager.party[slot]
+                    PartySlotView(
+                        pokemon: pokemon,
+                        isActive: pokemon.id == pokemonManager.currentPokemon.id,
+                        image: pokemonManager.previewImage(for: pokemon),
+                        onActivate: { pokemonManager.selectPokemon(pokemon) },
+                        onRemove: { pokemonManager.removeFromParty(pokemon) }
+                    )
+                } else {
+                    Button { sheet.showPokemonPicker = true } label: {
+                        Image(systemName: "plus")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundStyle(Color(red: 0.44, green: 0.30, blue: 0.42).opacity(0.45))
+                            .frame(width: 34, height: 34)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                    .fill(Color.white.opacity(0.22))
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                    .strokeBorder(
+                                        Color(red: 0.44, green: 0.30, blue: 0.42).opacity(0.18),
+                                        style: StrokeStyle(lineWidth: 1, dash: [4, 3])
+                                    )
+                            )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+
+            Spacer()
+
+            if pokemonManager.party.count > 1 {
+                Text(L10n.tr("popover.partyAutoRotate", language: preferences.appLanguage))
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(Color(red: 0.44, green: 0.30, blue: 0.42).opacity(0.55))
+            }
         }
     }
 
@@ -264,11 +312,20 @@ struct PopoverView: View {
     }
 
     private func embeddedPokemonRow(_ pokemon: Pokemon) -> some View {
-        let selected = pokemon.id == pokemonManager.currentPokemon.id
+        let isActive = pokemon.id == pokemonManager.currentPokemon.id
+        let isInParty = pokemonManager.isInParty(pokemon)
+        let partyFull = pokemonManager.party.count >= 3
+        let slot = pokemonManager.partySlot(of: pokemon)
+        let slotLabels = ["①", "②", "③"]
+
         return Button {
-            pokemonManager.selectPokemon(pokemon)
-            sheet.showPokemonPicker = false
-            onPokemonPicked()
+            if isInParty {
+                pokemonManager.selectPokemon(pokemon)
+                sheet.showPokemonPicker = false
+                onPokemonPicked()
+            } else if !partyFull {
+                pokemonManager.addToParty(pokemon)
+            }
         } label: {
             HStack(spacing: 10) {
                 ZStack {
@@ -285,6 +342,7 @@ struct PopoverView: View {
                 }
                 .frame(width: 54, height: 54)
                 .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .opacity((!isInParty && partyFull) ? 0.45 : 1.0)
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(pokemon.localizedDisplayName(language: preferences.appLanguage))
@@ -296,25 +354,36 @@ struct PopoverView: View {
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                 }
+                .opacity((!isInParty && partyFull) ? 0.45 : 1.0)
+
                 Spacer()
-                if selected {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 13))
-                        .foregroundStyle(.blue)
+
+                if let slot = slot {
+                    Text(slotLabels[slot])
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(isActive ? Color.accentColor : Color(red: 0.44, green: 0.30, blue: 0.42).opacity(0.75))
+                } else if !partyFull {
+                    Image(systemName: "plus.circle")
+                        .font(.system(size: 14))
+                        .foregroundStyle(.secondary.opacity(0.5))
                 }
             }
             .padding(.horizontal, 8)
             .padding(.vertical, 6)
             .background {
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(selected ? Color.accentColor.opacity(0.18) : Color.clear)
+                    .fill(isActive ? Color.accentColor.opacity(0.18) : Color.clear)
             }
             .overlay {
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .strokeBorder(selected ? Color.accentColor.opacity(0.85) : Color.primary.opacity(0.09), lineWidth: selected ? 1.8 : 1)
+                    .strokeBorder(
+                        isActive ? Color.accentColor.opacity(0.85) : Color.primary.opacity(0.09),
+                        lineWidth: isActive ? 1.8 : 1
+                    )
             }
         }
         .buttonStyle(.plain)
+        .disabled(!isInParty && partyFull)
     }
 
     private var filteredPokemon: [Pokemon] {
@@ -436,6 +505,59 @@ private struct NetworkCard: View {
             RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .fill(Color.primary.opacity(0.05))
         )
+    }
+}
+
+private struct PartySlotView: View {
+    let pokemon: Pokemon
+    let isActive: Bool
+    let image: NSImage?
+    let onActivate: () -> Void
+    let onRemove: () -> Void
+
+    @State private var isHovering = false
+
+    private let purple = Color(red: 0.44, green: 0.30, blue: 0.42)
+
+    var body: some View {
+        ZStack(alignment: .topTrailing) {
+            Button(action: onActivate) {
+                ZStack {
+                    if let img = image {
+                        Image(nsImage: img)
+                            .resizable()
+                            .interpolation(.none)
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 26, height: 26)
+                    }
+                }
+                .frame(width: 34, height: 34)
+                .background(
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .fill(isActive ? Color.accentColor.opacity(0.18) : Color.white.opacity(0.28))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .strokeBorder(
+                            isActive ? Color.accentColor.opacity(0.85) : purple.opacity(0.22),
+                            lineWidth: isActive ? 1.5 : 1
+                        )
+                )
+            }
+            .buttonStyle(.plain)
+
+            if isHovering {
+                Button(action: onRemove) {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(.white)
+                        .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
+                }
+                .buttonStyle(.plain)
+                .offset(x: 5, y: -5)
+            }
+        }
+        .onHover { isHovering = $0 }
     }
 }
 

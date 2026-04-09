@@ -26,6 +26,7 @@ class UserPreferences: ObservableObject {
         static let updateInterval = "updateInterval"
         static let enableNotifications = "enableNotifications"
         static let appLanguage = "appLanguage"
+        static let pokemonParty = "pokemonParty"
     }
 
     @Published var selectedPokemon: String {
@@ -64,12 +65,20 @@ class UserPreferences: ObservableObject {
         }
     }
 
+    @Published var pokemonParty: [String] {
+        didSet {
+            defaults.set(pokemonParty, forKey: Keys.pokemonParty)
+        }
+    }
+
     init() {
-        self.selectedPokemon = defaults.string(forKey: Keys.selectedPokemon) ?? "pikachu"
+        let savedPokemon = defaults.string(forKey: Keys.selectedPokemon) ?? "pikachu"
+        self.selectedPokemon = savedPokemon
         self.launchAtLogin = defaults.bool(forKey: Keys.launchAtLogin)
         self.showInDock = defaults.bool(forKey: Keys.showInDock)
         self.updateInterval = defaults.double(forKey: Keys.updateInterval) != 0 ? defaults.double(forKey: Keys.updateInterval) : 1.0
         self.enableNotifications = defaults.bool(forKey: Keys.enableNotifications)
         self.appLanguage = AppLanguage(rawValue: defaults.string(forKey: Keys.appLanguage) ?? AppLanguage.english.rawValue) ?? .english
+        self.pokemonParty = defaults.stringArray(forKey: Keys.pokemonParty) ?? [savedPokemon]
     }
 }

@@ -11,6 +11,7 @@
 "popover.choosePokemon" = "Choose Pokemon";
 "popover.searchPokemon" = "Search Pokemon (EN/JP)";
 "popover.noPokemonFound" = "No Pokemon found";
+"popover.partyAutoRotate" = "Auto-rotating";
 
 "stats.cpu" = "CPU";
 "stats.memory" = "RAM";
