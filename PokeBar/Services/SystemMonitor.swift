@@ -20,7 +20,9 @@ class SystemMonitor: ObservableObject {
     private let historyCapacity = 60
 
     private var timer: Timer?
-    private let updateInterval: TimeInterval = 1.0
+    private let updateInterval: TimeInterval
+    private let networkMonitor = NetworkMonitor()
+    private var lastPublicIPLookup: Date?
 
     // CPU tracking
     private var previousCPUInfo: processor_info_array_t?
@@ -30,6 +32,10 @@ class SystemMonitor: ObservableObject {
 
     // Callback for CPU updates
     var onCPUUpdate: ((Double) -> Void)?
+
+    init(updateInterval: TimeInterval = 1.0) {
+        self.updateInterval = updateInterval
+    }
 
     func startMonitoring() {
         // Initial update
@@ -49,6 +55,8 @@ class SystemMonitor: ObservableObject {
     private func updateStats() {
         updateCPUUsage()
         updateMemoryUsage()
+        updateNetworkStats()
+        refreshPublicIPIfNeeded()
 
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
@@ -147,6 +155,34 @@ class SystemMonitor: ObservableObject {
         self.stats.memoryTotalGB = totalGB
         self.stats.memoryUsedGB = usedGB
         self.stats.memoryUsage = totalMemory > 0 ? (Double(usedMemory) / Double(totalMemory)) * 100.0 : 0
+    }
+
+    private func updateNetworkStats() {
+        let network = networkMonitor.snapshot()
+        stats.wifiSSID = network.wifiSSID
+        stats.wifiConnected = network.wifiConnected
+        stats.localIPAddress = network.localIPAddress
+        stats.uploadMbps = network.uploadMbps
+        stats.downloadMbps = network.downloadMbps
+    }
+
+    private func refreshPublicIPIfNeeded() {
+        let now = Date()
+        if let last = lastPublicIPLookup, now.timeIntervalSince(last) < 300 {
+            return
+        }
+        lastPublicIPLookup = now
+
+        guard let url = URL(string: "https://api.ipify.org?format=text") else { return }
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 4
+        URLSession.shared.dataTask(with: request) { [weak self] data, _, _ in
+            guard let self, let data, let value = String(data: data, encoding: .utf8)?
+                .trimmingCharacters(in: .whitespacesAndNewlines), !value.isEmpty else { return }
+            DispatchQueue.main.async {
+                self.stats.publicIPAddress = value
+            }
+        }.resume()
     }
 
     deinit {

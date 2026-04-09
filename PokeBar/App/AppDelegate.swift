@@ -12,13 +12,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var menuBarController: MenuBarController?
     private var systemMonitor: SystemMonitor?
     private var pokemonManager: PokemonManager?
+    private let preferences = UserPreferences.shared
+    private let updater = UpdaterService.shared
+    private let locationPermission = LocationPermissionManager.shared
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Hide dock icon - we're a menubar-only app
-        NSApp.setActivationPolicy(.accessory)
+        NSApp.setActivationPolicy(preferences.showInDock ? .regular : .accessory)
 
-        systemMonitor = SystemMonitor()
-        pokemonManager = PokemonManager()
+        systemMonitor = SystemMonitor(updateInterval: preferences.updateInterval)
+        pokemonManager = PokemonManager(preferences: preferences)
 
         pokemonManager?.onPokemonSelectionChanged = { [weak self] _ in
             self?.menuBarController?.reloadMenubarAnimation()
@@ -26,10 +29,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         menuBarController = MenuBarController(
             systemMonitor: systemMonitor!,
-            pokemonManager: pokemonManager!
+            pokemonManager: pokemonManager!,
+            preferences: preferences,
+            onCheckUpdates: { [weak self] in
+                self?.updater.checkForUpdates()
+            }
         )
         menuBarController?.reloadMenubarAnimation()
 
+        locationPermission.requestPermissionIfNeeded()
         systemMonitor?.startMonitoring()
     }
 

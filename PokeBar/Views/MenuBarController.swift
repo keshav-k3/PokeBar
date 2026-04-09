@@ -15,6 +15,8 @@ class MenuBarController: NSObject, NSPopoverDelegate {
 
     private let systemMonitor: SystemMonitor
     private let pokemonManager: PokemonManager
+    private let preferences: UserPreferences
+    private let onCheckUpdates: () -> Void
     private let popoverSheet = PopoverSheetState()
     private var popoverSizeCancellable: AnyCancellable?
 
@@ -25,9 +27,16 @@ class MenuBarController: NSObject, NSPopoverDelegate {
     private var outsideClickMonitor: Any?
     private var resignActiveObserver: NSObjectProtocol?
 
-    init(systemMonitor: SystemMonitor, pokemonManager: PokemonManager) {
+    init(
+        systemMonitor: SystemMonitor,
+        pokemonManager: PokemonManager,
+        preferences: UserPreferences = .shared,
+        onCheckUpdates: @escaping () -> Void
+    ) {
         self.systemMonitor = systemMonitor
         self.pokemonManager = pokemonManager
+        self.preferences = preferences
+        self.onCheckUpdates = onCheckUpdates
         super.init()
 
         setupMenuBar()
@@ -79,9 +88,9 @@ class MenuBarController: NSObject, NSPopoverDelegate {
 
     private func setupPopover() {
         popover = NSPopover()
-        popover?.contentSize = NSSize(width: 340, height: 360)
+        popover?.contentSize = NSSize(width: 440, height: 560)
         popover?.behavior = .transient
-        popover?.animates = true
+        popover?.animates = false
         popover?.delegate = self
 
         let host = NSHostingController(
@@ -89,8 +98,12 @@ class MenuBarController: NSObject, NSPopoverDelegate {
                 sheet: popoverSheet,
                 systemMonitor: systemMonitor,
                 pokemonManager: pokemonManager,
+                preferences: preferences,
                 onQuit: { [weak self] in
                     self?.quitApp()
+                },
+                onPokemonPicked: { [weak self] in
+                    self?.popover?.performClose(nil)
                 }
             )
         )
@@ -104,8 +117,8 @@ class MenuBarController: NSObject, NSPopoverDelegate {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] expanded in
                 self?.popover?.contentSize = expanded
-                    ? NSSize(width: 340, height: 540)
-                    : NSSize(width: 340, height: 360)
+                    ? NSSize(width: 860, height: 730)
+                    : NSSize(width: 440, height: 560)
             }
     }
 
@@ -269,12 +282,13 @@ class MenuBarController: NSObject, NSPopoverDelegate {
     private func showContextMenu() {
         let menu = NSMenu()
 
-        menu.addItem(NSMenuItem(title: "About PokeBar", action: #selector(showAbout), keyEquivalent: ""))
+        menu.addItem(NSMenuItem(title: L10n.tr("menu.about", language: preferences.appLanguage), action: #selector(showAbout), keyEquivalent: ""))
         menu.addItem(NSMenuItem.separator())
-        menu.addItem(NSMenuItem(title: "Change Pokemon...", action: #selector(revealPokemonPicker), keyEquivalent: ""))
-        menu.addItem(NSMenuItem(title: "Preferences...", action: #selector(showPreferences), keyEquivalent: ","))
+        menu.addItem(NSMenuItem(title: L10n.tr("menu.changePokemon", language: preferences.appLanguage), action: #selector(revealPokemonPicker), keyEquivalent: ""))
+        menu.addItem(NSMenuItem(title: L10n.tr("menu.preferences", language: preferences.appLanguage), action: #selector(showPreferences), keyEquivalent: ","))
+        menu.addItem(NSMenuItem(title: L10n.tr("menu.checkUpdates", language: preferences.appLanguage), action: #selector(checkForUpdates), keyEquivalent: "u"))
         menu.addItem(NSMenuItem.separator())
-        menu.addItem(NSMenuItem(title: "Quit PokeBar", action: #selector(quitApp), keyEquivalent: "q"))
+        menu.addItem(NSMenuItem(title: L10n.tr("menu.quit", language: preferences.appLanguage), action: #selector(quitApp), keyEquivalent: "q"))
 
         statusItem?.menu = menu
         statusItem?.button?.performClick(nil)
@@ -287,17 +301,21 @@ class MenuBarController: NSObject, NSPopoverDelegate {
     }
 
     @objc private func showPreferences() {
-        let preferencesView = SettingsView()
+        let preferencesView = SettingsView(preferences: preferences)
         let hostingController = NSHostingController(rootView: preferencesView)
 
         let window = NSWindow(contentViewController: hostingController)
-        window.title = "Preferences"
+        window.title = L10n.tr("menu.preferences", language: preferences.appLanguage)
         window.styleMask = [.titled, .closable]
-        window.setContentSize(NSSize(width: 400, height: 300))
+        window.setContentSize(NSSize(width: 500, height: 360))
         window.center()
 
         NSApp.activate(ignoringOtherApps: true)
         window.makeKeyAndOrderFront(nil)
+    }
+
+    @objc private func checkForUpdates() {
+        onCheckUpdates()
     }
 
     /// Opens the in-popover Pokémon strip (below stats). Shows the popover first if needed.

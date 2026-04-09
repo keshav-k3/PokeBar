@@ -7,7 +7,16 @@
 
 import Foundation
 
+enum AppLanguage: String, CaseIterable, Identifiable {
+    case english = "en"
+    case japanese = "ja"
+
+    var id: String { rawValue }
+}
+
 class UserPreferences: ObservableObject {
+    static let shared = UserPreferences()
+
     private let defaults = UserDefaults.standard
 
     private enum Keys {
@@ -16,6 +25,7 @@ class UserPreferences: ObservableObject {
         static let showInDock = "showInDock"
         static let updateInterval = "updateInterval"
         static let enableNotifications = "enableNotifications"
+        static let appLanguage = "appLanguage"
     }
 
     @Published var selectedPokemon: String {
@@ -48,11 +58,18 @@ class UserPreferences: ObservableObject {
         }
     }
 
+    @Published var appLanguage: AppLanguage {
+        didSet {
+            defaults.set(appLanguage.rawValue, forKey: Keys.appLanguage)
+        }
+    }
+
     init() {
         self.selectedPokemon = defaults.string(forKey: Keys.selectedPokemon) ?? "pikachu"
         self.launchAtLogin = defaults.bool(forKey: Keys.launchAtLogin)
         self.showInDock = defaults.bool(forKey: Keys.showInDock)
         self.updateInterval = defaults.double(forKey: Keys.updateInterval) != 0 ? defaults.double(forKey: Keys.updateInterval) : 1.0
         self.enableNotifications = defaults.bool(forKey: Keys.enableNotifications)
+        self.appLanguage = AppLanguage(rawValue: defaults.string(forKey: Keys.appLanguage) ?? AppLanguage.english.rawValue) ?? .english
     }
 }

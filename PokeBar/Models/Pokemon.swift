@@ -10,14 +10,19 @@ import Foundation
 struct Pokemon: Identifiable, Codable, Equatable {
     let id: String
     let name: String
-    let displayName: String
 
-    /// Alpha: four sleeping starters (menu bar = sleep sheet PNG frames; popover = static PNG).
+    /// Available roster (menu bar = sleep sheet PNG frames; popover = static PNG).
     static let available: [Pokemon] = [
-        Pokemon(id: "pikachu", name: "Pikachu", displayName: "Pikachu"),
-        Pokemon(id: "charmander", name: "Charmander", displayName: "Charmander"),
-        Pokemon(id: "squirtle", name: "Squirtle", displayName: "Squirtle"),
-        Pokemon(id: "bulbasaur", name: "Bulbasaur", displayName: "Bulbasaur")
+        Pokemon(id: "pikachu", name: "Pikachu"),
+        Pokemon(id: "charmander", name: "Charmander"),
+        Pokemon(id: "squirtle", name: "Squirtle"),
+        Pokemon(id: "bulbasaur", name: "Bulbasaur"),
+        Pokemon(id: "jigglypuff", name: "Jigglypuff"),
+        Pokemon(id: "psyduck", name: "Psyduck"),
+        Pokemon(id: "eevee", name: "Eevee"),
+        Pokemon(id: "oshawott", name: "Oshawott"),
+        Pokemon(id: "dragonite", name: "Dragonite"),
+        Pokemon(id: "snorlax", name: "Snorlax")
     ]
 
     static var `default`: Pokemon {
@@ -32,5 +37,9 @@ struct Pokemon: Identifiable, Codable, Equatable {
     /// `Resources/Sprites/Static-<id>.png` — crisp art for popover + picker.
     var popoverStaticImageFilename: String {
         "Static-\(id).png"
+    }
+
+    func localizedDisplayName(language: AppLanguage) -> String {
+        L10n.pokemonName(id: id, language: language)
     }
 }

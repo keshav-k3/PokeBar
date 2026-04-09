@@ -1,0 +1,51 @@
+"menu.about" = "About PokeBar";
+"menu.changePokemon" = "Change Pokemon...";
+"menu.preferences" = "Preferences...";
+"menu.checkUpdates" = "Check for Updates...";
+"menu.quit" = "Quit PokeBar";
+
+"common.done" = "Done";
+
+"popover.systemMonitor" = "System Monitor";
+"popover.changePokemon" = "Change Pokemon";
+"popover.choosePokemon" = "Choose Pokemon";
+"popover.searchPokemon" = "Search Pokemon (EN/JP)";
+"popover.noPokemonFound" = "No Pokemon found";
+
+"stats.cpu" = "CPU";
+"stats.memory" = "RAM";
+"stats.network" = "Network";
+"stats.localIp" = "Local IP";
+"stats.publicIp" = "Public IP";
+"stats.download" = "Download";
+"stats.upload" = "Upload";
+
+"settings.generalTab" = "General";
+"settings.languageTab" = "Language";
+"settings.general" = "General";
+"settings.launchAtLogin" = "Launch at Login";
+"settings.launchAtLoginHelp" = "Automatically start PokeBar when you log in";
+"settings.showInDock" = "Show in Dock";
+"settings.showInDockHelp" = "Show the application icon in the Dock";
+"settings.performance" = "Performance";
+"settings.updateInterval" = "Update Interval";
+"settings.updateIntervalHelp" = "How often to update system statistics";
+"settings.notifications" = "Notifications";
+"settings.enableNotifications" = "Enable Notifications";
+"settings.enableNotificationsHelp" = "Show notifications for high resource usage (future feature)";
+"settings.tagline" = "A Pokemon-themed system monitor";
+"settings.language" = "Language";
+"settings.appLanguage" = "App Language";
+"settings.appLanguageHelp" = "Choose the language used in PokeBar";
+
+"pokemon.pikachu" = "Pikachu";
+"pokemon.charmander" = "Charmander";
+"pokemon.squirtle" = "Squirtle";
+"pokemon.bulbasaur" = "Bulbasaur";
+"pokemon.jigglypuff" = "Jigglypuff";
+"pokemon.psyduck" = "Psyduck";
+"pokemon.eevee" = "Eevee";
+"pokemon.oshawott" = "Oshawott";
+"pokemon.dragonite" = "Dragonite";
+"pokemon.snorlax" = "Snorlax";
+"popover.pokemonButton" = "Pokemon";

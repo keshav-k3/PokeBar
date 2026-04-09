@@ -11,37 +11,55 @@ struct PopoverView: View {
     @ObservedObject var sheet: PopoverSheetState
     @ObservedObject var systemMonitor: SystemMonitor
     @ObservedObject var pokemonManager: PokemonManager
+    @ObservedObject var preferences: UserPreferences
 
     let onQuit: () -> Void
+    let onPokemonPicked: () -> Void
+    @State private var showLanguageMenu = false
+    @State private var pokemonSearchQuery = ""
+    @State private var pokeballRotation: Double = 0
+    @State private var spinTimer: Timer?
 
     private let chromeRadius: CGFloat = 14
     private let innerRadius: CGFloat = 10
 
-    private let gridColumns = [
-        GridItem(.flexible(), spacing: 10),
-        GridItem(.flexible(), spacing: 10)
-    ]
-
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            header
-            statsSection
-            buttonRow
-
-            if sheet.showPokemonPicker {
-                pokemonPickerSection
+        HStack(alignment: .top, spacing: 12) {
+            VStack(alignment: .leading, spacing: 12) {
+                header
+                if showLanguageMenu { languageMenu }
+                statsSection
             }
+            .frame(width: 396)
+
+            if sheet.showPokemonPicker { pokemonPickerSidebar }
         }
         .padding(14)
-        .frame(width: 308)
+        .frame(width: sheet.showPokemonPicker ? 840 : 420)
         .background {
             RoundedRectangle(cornerRadius: chromeRadius, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .shadow(color: .black.opacity(0.14), radius: 14, x: 0, y: 8)
+                .fill(
+                    LinearGradient(
+                        colors: [Color(red: 0.95, green: 0.94, blue: 0.88), Color(red: 0.90, green: 0.89, blue: 0.82)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+                .shadow(color: .black.opacity(0.16), radius: 16, x: 0, y: 10)
         }
         .overlay {
             RoundedRectangle(cornerRadius: chromeRadius, style: .continuous)
-                .strokeBorder(Color.primary.opacity(0.12), lineWidth: 1)
+                .strokeBorder(Color(red: 0.44, green: 0.30, blue: 0.42).opacity(0.28), lineWidth: 1.2)
+        }
+        .onChange(of: sheet.showPokemonPicker) { expanded in
+            if expanded {
+                startPokeballSpin()
+            } else {
+                stopPokeballSpin()
+            }
+        }
+        .onDisappear {
+            stopPokeballSpin()
         }
     }
 
@@ -57,30 +75,67 @@ struct PopoverView: View {
             }
 
             VStack(alignment: .leading, spacing: 3) {
-                Text(pokemonManager.currentPokemon.displayName)
+                Text(pokemonManager.currentPokemon.localizedDisplayName(language: preferences.appLanguage))
                     .font(.system(size: 17, weight: .semibold))
-                Text("System Monitor")
+                Text(L10n.tr("popover.systemMonitor", language: preferences.appLanguage))
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(.secondary)
             }
-            Spacer(minLength: 0)
+            Spacer(minLength: 8)
+            HStack(spacing: 8) {
+                pokeballHeaderButton
+                iconControlButton(systemName: "gearshape.fill") {
+                    showLanguageMenu.toggle()
+                }
+                iconControlButton(systemName: "power") {
+                    onQuit()
+                }
+            }
         }
         .padding(12)
         .background {
             RoundedRectangle(cornerRadius: innerRadius, style: .continuous)
-                .fill(.thinMaterial)
+                .fill(Color.white.opacity(0.34))
         }
         .overlay {
             RoundedRectangle(cornerRadius: innerRadius, style: .continuous)
-                .strokeBorder(Color.primary.opacity(0.08), lineWidth: 1)
+                .strokeBorder(Color(red: 0.44, green: 0.30, blue: 0.42).opacity(0.18), lineWidth: 1)
         }
+    }
+
+    private var languageMenu: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "globe")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(.secondary)
+            Text(L10n.tr("settings.appLanguage", language: preferences.appLanguage))
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(.secondary)
+            Spacer()
+            Picker("", selection: $preferences.appLanguage) {
+                Text("EN").tag(AppLanguage.english)
+                Text("JP").tag(AppLanguage.japanese)
+            }
+            .pickerStyle(.segmented)
+            .frame(width: 110)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(Color.white.opacity(0.34))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .strokeBorder(Color(red: 0.44, green: 0.30, blue: 0.42).opacity(0.14), lineWidth: 1)
+        )
     }
 
     private var statsSection: some View {
         VStack(spacing: 12) {
             GlassStatRow(
                 icon: "cpu",
-                label: "CPU",
+                label: L10n.tr("stats.cpu", language: preferences.appLanguage),
                 value: systemMonitor.stats.formattedCPU,
                 percentage: systemMonitor.stats.cpuUsage,
                 accent: .blue,
@@ -88,116 +143,296 @@ struct PopoverView: View {
             )
             GlassStatRow(
                 icon: "memorychip",
-                label: "RAM",
+                label: L10n.tr("stats.memory", language: preferences.appLanguage),
                 value: systemMonitor.stats.formattedMemory,
                 percentage: systemMonitor.stats.memoryPercentage,
                 accent: .green,
                 history: systemMonitor.memoryHistory
             )
+            NetworkCard(stats: systemMonitor.stats, language: preferences.appLanguage)
         }
         .padding(12)
         .background {
             RoundedRectangle(cornerRadius: innerRadius, style: .continuous)
-                .fill(.thinMaterial)
+                .fill(Color.white.opacity(0.30))
         }
         .overlay {
             RoundedRectangle(cornerRadius: innerRadius, style: .continuous)
-                .strokeBorder(Color.primary.opacity(0.08), lineWidth: 1)
+                .strokeBorder(Color(red: 0.44, green: 0.30, blue: 0.42).opacity(0.14), lineWidth: 1)
         }
     }
 
-    private var buttonRow: some View {
-        HStack(spacing: 10) {
-            glassButton(
-                title: sheet.showPokemonPicker ? "Done" : "Change Pokémon",
-                prominent: true,
-                action: {
-                    sheet.showPokemonPicker.toggle()
-                }
-            )
-            glassButton(title: "Quit", prominent: false, action: onQuit)
-        }
-    }
-
-    private var pokemonPickerSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Choose Pokémon")
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(.secondary)
-
-            LazyVGrid(columns: gridColumns, spacing: 10) {
-                ForEach(Pokemon.available) { pokemon in
-                    embeddedPokemonCell(pokemon)
+    private var pokeballHeaderButton: some View {
+        Button {
+            sheet.showPokemonPicker.toggle()
+        } label: {
+            Group {
+                if let image = pokeballImage {
+                    Image(nsImage: image)
+                        .resizable()
+                        .interpolation(.none)
+                        .frame(width: 16, height: 16)
+                        .rotationEffect(.degrees(pokeballRotation))
+                } else {
+                    Image(systemName: "circle.grid.cross")
+                        .font(.system(size: 12, weight: .bold))
                 }
             }
+            .frame(width: 28, height: 28)
+            .foregroundStyle(Color.primary.opacity(0.78))
+            .background(
+                Circle().fill(Color.white.opacity(0.38))
+            )
+            .overlay(
+                Circle().stroke(Color(red: 0.44, green: 0.30, blue: 0.42).opacity(0.18), lineWidth: 1)
+            )
         }
-        .padding(.top, 4)
+        .buttonStyle(.plain)
     }
 
-    private func embeddedPokemonCell(_ pokemon: Pokemon) -> some View {
+    private func startPokeballSpin() {
+        guard spinTimer == nil else { return }
+        pokeballRotation = 0
+        spinTimer = Timer.scheduledTimer(withTimeInterval: 1.0 / 30.0, repeats: true) { _ in
+            pokeballRotation = (pokeballRotation + 12).truncatingRemainder(dividingBy: 360)
+        }
+        if let spinTimer {
+            RunLoop.main.add(spinTimer, forMode: .common)
+        }
+    }
+
+    private func stopPokeballSpin() {
+        spinTimer?.invalidate()
+        spinTimer = nil
+        pokeballRotation = 0
+    }
+
+    private var pokemonPickerSidebar: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(L10n.tr("popover.choosePokemon", language: preferences.appLanguage))
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(.secondary)
+
+            HStack(spacing: 6) {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                TextField(L10n.tr("popover.searchPokemon", language: preferences.appLanguage), text: $pokemonSearchQuery)
+                    .textFieldStyle(.plain)
+                    .font(.system(size: 12, weight: .medium))
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 8)
+            .background(
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(Color.white.opacity(0.35))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .strokeBorder(Color(red: 0.44, green: 0.30, blue: 0.42).opacity(0.15), lineWidth: 1)
+            )
+
+            ScrollView {
+                LazyVStack(spacing: 8) {
+                    ForEach(filteredPokemon) { pokemon in
+                        embeddedPokemonRow(pokemon)
+                    }
+                    if filteredPokemon.isEmpty {
+                        Text(L10n.tr("popover.noPokemonFound", language: preferences.appLanguage))
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .padding(.vertical, 14)
+                    }
+                }
+            }
+            .frame(maxHeight: 320)
+        }
+        .frame(width: 396)
+        .padding(10)
+        .background(
+            RoundedRectangle(cornerRadius: innerRadius, style: .continuous)
+                .fill(Color.white.opacity(0.3))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: innerRadius, style: .continuous)
+                .strokeBorder(Color(red: 0.44, green: 0.30, blue: 0.42).opacity(0.14), lineWidth: 1)
+        )
+    }
+
+    private func embeddedPokemonRow(_ pokemon: Pokemon) -> some View {
         let selected = pokemon.id == pokemonManager.currentPokemon.id
         return Button {
             pokemonManager.selectPokemon(pokemon)
             sheet.showPokemonPicker = false
+            onPokemonPicked()
         } label: {
-            VStack(spacing: 8) {
+            HStack(spacing: 10) {
                 ZStack {
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(Color.primary.opacity(0.06))
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .fill(Color.primary.opacity(0.05))
                     if let image = pokemonManager.previewImage(for: pokemon) {
                         Image(nsImage: image)
                             .resizable()
                             .interpolation(.none)
                             .aspectRatio(contentMode: .fill)
-                            .frame(width: 72, height: 72)
+                            .frame(width: 48, height: 48)
                             .clipped()
                     }
                 }
-                .frame(height: 72)
-                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .frame(width: 54, height: 54)
+                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
 
-                Text(pokemon.displayName)
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(.primary)
-                    .lineLimit(1)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(pokemon.localizedDisplayName(language: preferences.appLanguage))
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(.primary)
+                        .lineLimit(1)
+                    Text(pokemon.name)
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+                Spacer()
+                if selected {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 13))
+                        .foregroundStyle(.blue)
+                }
             }
-            .frame(maxWidth: .infinity)
-            .padding(10)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 6)
             .background {
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(selected ? Color.accentColor.opacity(0.22) : Color.clear)
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(selected ? Color.accentColor.opacity(0.18) : Color.clear)
             }
             .overlay {
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .strokeBorder(
-                        selected ? Color.accentColor.opacity(0.9) : Color.primary.opacity(0.1),
-                        lineWidth: selected ? 2 : 1
-                    )
+                    .strokeBorder(selected ? Color.accentColor.opacity(0.85) : Color.primary.opacity(0.09), lineWidth: selected ? 1.8 : 1)
             }
         }
         .buttonStyle(.plain)
     }
 
-    private func glassButton(title: String, prominent: Bool, action: @escaping () -> Void) -> some View {
+    private var filteredPokemon: [Pokemon] {
+        let query = pokemonSearchQuery.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        if query.isEmpty { return Pokemon.available }
+        return Pokemon.available.filter { pokemon in
+            pokemon.name.lowercased().contains(query)
+                || pokemon.id.lowercased().contains(query)
+                || pokemon.localizedDisplayName(language: preferences.appLanguage).lowercased().contains(query)
+        }
+    }
+
+    private func iconControlButton(systemName: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Text(title)
-                .font(.system(size: 13, weight: .semibold))
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 9)
+            Image(systemName: systemName)
+                .font(.system(size: 12, weight: .bold))
+                .frame(width: 28, height: 28)
+                .foregroundStyle(Color.primary.opacity(0.78))
+                .background(
+                    Circle()
+                        .fill(Color.white.opacity(0.38))
+                )
+                .overlay(
+                    Circle()
+                        .stroke(Color(red: 0.44, green: 0.30, blue: 0.42).opacity(0.18), lineWidth: 1)
+                )
         }
         .buttonStyle(.plain)
-        .background {
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .fill(prominent ? Color.accentColor.opacity(0.35) : Color.primary.opacity(0.06))
-                .background {
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .fill(.ultraThinMaterial)
-                }
+    }
+
+    private var pokeballImage: NSImage? {
+        var candidates: [String] = []
+        if let resourcePath = Bundle.main.resourcePath {
+            candidates.append("\(resourcePath)/pokeball.png")
+            candidates.append("\(resourcePath)/PokeBar_PokeBar.bundle/Resources/pokeball.png")
+            candidates.append("\(resourcePath)/Resources/pokeball.png")
         }
-        .overlay {
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .strokeBorder(Color.primary.opacity(prominent ? 0.15 : 0.1), lineWidth: 1)
+        if let executablePath = Bundle.main.executableURL?.deletingLastPathComponent().path {
+            candidates.append("\(executablePath)/PokeBar_PokeBar.bundle/Resources/pokeball.png")
         }
+        candidates.append(FileManager.default.currentDirectoryPath + "/PokeBar/Resources/pokeball.png")
+        for path in candidates {
+            if let image = NSImage(contentsOfFile: path) {
+                return image
+            }
+        }
+        return nil
+    }
+}
+
+private struct NetworkCard: View {
+    let stats: SystemStats
+    let language: AppLanguage
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Label(L10n.tr("stats.network", language: language), systemImage: "wifi")
+                    .font(.system(size: 13, weight: .semibold))
+                Spacer()
+                Text(stats.formattedNetworkName)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(.secondary)
+            }
+
+            HStack(spacing: 6) {
+                Image(systemName: "globe")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                Text(L10n.tr("stats.publicIp", language: language))
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Text(stats.formattedPublicIP)
+                    .font(.system(size: 13, weight: .semibold, design: .monospaced))
+                    .lineLimit(1)
+            }
+
+            HStack(spacing: 10) {
+                transferTile(
+                    icon: "arrow.down.circle.fill",
+                    title: L10n.tr("stats.download", language: language),
+                    value: stats.formattedDownloadSpeed,
+                    accent: .blue
+                )
+                transferTile(
+                    icon: "arrow.up.circle.fill",
+                    title: L10n.tr("stats.upload", language: language),
+                    value: stats.formattedUploadSpeed,
+                    accent: .green
+                )
+            }
+        }
+        .padding(10)
+        .background(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(Color.primary.opacity(0.04))
+        )
+    }
+
+    private func transferTile(icon: String, title: String, value: String, accent: Color) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 6) {
+                Image(systemName: icon)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(accent)
+                Text(title)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(.secondary)
+            }
+            Text(value)
+                .font(.system(size: 14, weight: .semibold, design: .monospaced))
+                .lineLimit(1)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, 8)
+        .padding(.horizontal, 10)
+        .background(
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .fill(Color.primary.opacity(0.05))
+        )
     }
 }
 
