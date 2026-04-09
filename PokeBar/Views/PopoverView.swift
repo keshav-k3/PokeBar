@@ -84,14 +84,16 @@ struct PopoverView: View {
                 label: L10n.tr("stats.cpu", language: preferences.appLanguage),
                 value: systemMonitor.stats.formattedCPU,
                 percentage: systemMonitor.stats.cpuUsage,
-                accent: .blue
+                accent: .blue,
+                history: systemMonitor.cpuHistory
             )
             GlassStatRow(
                 icon: "memorychip",
                 label: L10n.tr("stats.memory", language: preferences.appLanguage),
                 value: systemMonitor.stats.formattedMemory,
                 percentage: systemMonitor.stats.memoryPercentage,
-                accent: .green
+                accent: .green,
+                history: systemMonitor.memoryHistory
             )
             NetworkCard(stats: systemMonitor.stats, language: preferences.appLanguage)
         }
@@ -251,6 +253,7 @@ private struct GlassStatRow: View {
     let value: String
     let percentage: Double
     let accent: Color
+    var history: [Double] = []
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -282,6 +285,71 @@ private struct GlassStatRow: View {
                 }
             }
             .frame(height: 7)
+
+            if history.count > 1 {
+                MiniLineChart(data: history, accent: accent)
+                    .frame(height: 36)
+            }
+        }
+    }
+}
+
+
+private struct MiniLineChart: View {
+    let data: [Double]
+    let accent: Color
+
+    var body: some View {
+        GeometryReader { geo in
+            let w = geo.size.width
+            let h = geo.size.height
+            let maxVal = max(data.max() ?? 1, 1)
+            let step = data.count > 1 ? w / CGFloat(data.count - 1) : 0
+
+            ZStack(alignment: .topLeading) {
+                // Horizontal grid lines at 25%, 50%, 75%
+                ForEach([0.25, 0.5, 0.75], id: \.self) { frac in
+                    Path { path in
+                        let y = h - h * CGFloat(frac * 100.0 / maxVal)
+                        path.move(to: CGPoint(x: 0, y: y))
+                        path.addLine(to: CGPoint(x: w, y: y))
+                    }
+                    .stroke(Color.primary.opacity(0.06), lineWidth: 0.5)
+                }
+
+                // Filled area
+                Path { path in
+                    guard data.count > 1 else { return }
+                    path.move(to: CGPoint(x: 0, y: h))
+                    for (i, val) in data.enumerated() {
+                        let x = step * CGFloat(i)
+                        let y = h - h * CGFloat(val / maxVal)
+                        path.addLine(to: CGPoint(x: x, y: y))
+                    }
+                    path.addLine(to: CGPoint(x: step * CGFloat(data.count - 1), y: h))
+                    path.closeSubpath()
+                }
+                .fill(
+                    LinearGradient(
+                        colors: [accent.opacity(0.25), accent.opacity(0.03)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+
+                // Line
+                Path { path in
+                    guard data.count > 1 else { return }
+                    for (i, val) in data.enumerated() {
+                        let x = step * CGFloat(i)
+                        let y = h - h * CGFloat(val / maxVal)
+                        if i == 0 { path.move(to: CGPoint(x: x, y: y)) }
+                        else { path.addLine(to: CGPoint(x: x, y: y)) }
+                    }
+                }
+                .stroke(accent.opacity(0.8), lineWidth: 1.2)
+            }
+            .clipped()
         }
     }
 }

@@ -13,6 +13,11 @@ import Darwin
 /// “wired + active + compressed” model (see `updateMemoryUsage`).
 class SystemMonitor: ObservableObject {
     @Published var stats = SystemStats()
+    @Published var cpuHistory: [Double] = []
+    @Published var memoryHistory: [Double] = []
+
+    /// Maximum number of samples kept (60 s at 1 s interval).
+    private let historyCapacity = 60
 
     private var timer: Timer?
     private let updateInterval: TimeInterval
@@ -55,6 +60,16 @@ class SystemMonitor: ObservableObject {
 
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
+
+            self.cpuHistory.append(self.stats.cpuUsage)
+            if self.cpuHistory.count > self.historyCapacity {
+                self.cpuHistory.removeFirst(self.cpuHistory.count - self.historyCapacity)
+            }
+            self.memoryHistory.append(self.stats.memoryPercentage)
+            if self.memoryHistory.count > self.historyCapacity {
+                self.memoryHistory.removeFirst(self.memoryHistory.count - self.historyCapacity)
+            }
+
             self.objectWillChange.send()
             self.onCPUUpdate?(self.stats.cpuUsage)
         }
