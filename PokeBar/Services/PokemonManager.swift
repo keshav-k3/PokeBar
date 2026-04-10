@@ -12,6 +12,8 @@ class PokemonManager: ObservableObject {
     @Published var currentPokemon: Pokemon
     private let preferences: UserPreferences
     private var staticImageCache: [String: NSImage] = [:]
+    private var rotationTimer: Timer?
+    private static let rotationInterval: TimeInterval = 60.0
 
     /// Fired after the user selects a different Pokémon (and on programmatic changes).
     var onPokemonSelectionChanged: ((Pokemon) -> Void)?
@@ -25,12 +27,64 @@ class PokemonManager: ObservableObject {
             currentPokemon = Pokemon.default
             preferences.selectedPokemon = currentPokemon.id
         }
+        scheduleRotationIfNeeded()
     }
 
     func selectPokemon(_ pokemon: Pokemon) {
         currentPokemon = pokemon
         preferences.selectedPokemon = pokemon.id
         onPokemonSelectionChanged?(pokemon)
+    }
+
+    // MARK: - Party
+
+    var party: [Pokemon] {
+        preferences.pokemonParty.compactMap { id in
+            Pokemon.available.first(where: { $0.id == id })
+        }
+    }
+
+    func isInParty(_ pokemon: Pokemon) -> Bool {
+        preferences.pokemonParty.contains(pokemon.id)
+    }
+
+    func partySlot(of pokemon: Pokemon) -> Int? {
+        preferences.pokemonParty.firstIndex(of: pokemon.id)
+    }
+
+    func addToParty(_ pokemon: Pokemon) {
+        guard !isInParty(pokemon), preferences.pokemonParty.count < 3 else { return }
+        preferences.pokemonParty.append(pokemon.id)
+        scheduleRotationIfNeeded()
+        objectWillChange.send()
+    }
+
+    func removeFromParty(_ pokemon: Pokemon) {
+        guard preferences.pokemonParty.count > 1 else { return }
+        preferences.pokemonParty.removeAll { $0 == pokemon.id }
+        if currentPokemon.id == pokemon.id, let first = party.first {
+            selectPokemon(first)
+        }
+        scheduleRotationIfNeeded()
+        objectWillChange.send()
+    }
+
+    private func scheduleRotationIfNeeded() {
+        rotationTimer?.invalidate()
+        rotationTimer = nil
+        guard preferences.pokemonParty.count > 1 else { return }
+        let timer = Timer.scheduledTimer(withTimeInterval: Self.rotationInterval, repeats: true) { [weak self] _ in
+            DispatchQueue.main.async { self?.rotateToNext() }
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        rotationTimer = timer
+    }
+
+    private func rotateToNext() {
+        let p = party
+        guard p.count > 1,
+              let idx = p.firstIndex(where: { $0.id == currentPokemon.id }) else { return }
+        selectPokemon(p[(idx + 1) % p.count])
     }
 
     /// URL to a file in `Resources/Sprites` inside the app or dev tree.

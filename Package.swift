@@ -27,6 +27,9 @@ let package = Package(
             path: "PokeBar",
             resources: [
                 .copy("Resources")
+            ],
+            linkerSettings: [
+                .linkedFramework("IOKit")
             ]
         )
     ]
