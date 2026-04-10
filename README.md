@@ -1,7 +1,7 @@
 # PokeBar
 
 <p align="center">
-  <img alt="Version" src="https://img.shields.io/badge/version-v2-blue" />
+  <img alt="Version" src="https://img.shields.io/badge/version-v2.0.1-blue" />
   <img alt="Languages" src="https://img.shields.io/badge/languages-EN%20%7C%20JP-success" />
 </p>
 
