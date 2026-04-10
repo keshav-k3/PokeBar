@@ -13,6 +13,8 @@
 
 日本語 [README.ja.md](README.ja.md)
 
+**License:** The **program source code** in this repository is under the [MIT License](LICENSE) (see the MIT section at the top of that file). **Bundled sprite images** are **not** MIT-licensed; they follow **third-party terms** (including [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/) where stated for PMD Collab–sourced assets). See [`LICENSE`](LICENSE), [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md), and [PMD Collab About](https://sprites.pmdcollab.org/#/About). Pokémon is a trademark of Nintendo / Game Freak / The Pokémon Company; this is a fan project and is not affiliated with them.
+
 **Homebrew:**
 
 ```bash

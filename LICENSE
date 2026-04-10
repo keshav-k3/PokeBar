@@ -1,13 +1,24 @@
-MIT License
+MIT License — source code only
 
 Copyright (c) 2026 PokeBar Contributors
 
+The permission below applies only to this repository’s **original source code and
+documentation** written by PokeBar contributors (Swift and other program text,
+build config, and project docs). Together, those files are referred to as the
+**“Software.”**
+
+**The Software does not include** raster or vector artwork shipped under
+`PokeBar/Resources/` (for example PNG sprites under `PokeBar/Resources/Sprites/`).
+Those **bundled assets are not licensed under MIT**; they are governed by the
+third-party terms described after the MIT text and in `THIRD_PARTY_NOTICES.md`.
+
+---
+
 Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+of the Software, to deal in the Software without restriction, including without
+limitation the rights to use, copy, modify, merge, publish, distribute,
+sublicense, and/or sell copies of the Software, and to permit persons to whom
+the Software is furnished to do so, subject to the following conditions:
 
 The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
@@ -22,16 +33,27 @@ SOFTWARE.
 
 ---
 
-TRADEMARKS AND THIRD-PARTY CONTENT
+Bundled sprite and image assets (not MIT)
 
-Pokémon and related names are trademarks of Nintendo, Game Freak, and The
-Pokémon Company. This project is a fan-made application and is not affiliated
-with or endorsed by those rights holders.
+Custom graphics sourced from the **PMD Sprite Repository** (PMD Collab) are
+made available under the terms stated on the project site, including:
 
-Sprite / character artwork used in this application is credited to
-**Spike Chunsoft Co., Ltd.**  
-https://www.spike-chunsoft.com/
+- **Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)**  
+  for custom graphics in that repository **not** originating from official
+  Pokémon Mystery Dungeon games, as described in their terms of use.  
+  License deed: https://creativecommons.org/licenses/by-nc/4.0/  
+  About / terms: https://sprites.pmdcollab.org/#/About
 
-This project is intended for personal and educational use. Use of
-Pokémon-related intellectual property is not authorized for commercial
-redistribution without permission from the respective owners.
+You must comply with CC BY-NC 4.0 (and any stricter terms on the PMD Collab
+site) when **using, redistributing, or modifying those assets**, including
+attribution and non-commercial conditions as defined by that license.
+
+**Separate from the above:** Pokémon character names and designs are subject to
+rights held by **Nintendo, Game Freak, and The Pokémon Company**. This project
+is a **fan work**, not affiliated with or endorsed by those rights holders.
+Spike Chunsoft Co., Ltd. develops official Pokémon Mystery Dungeon titles; this
+project is not an official product of Spike Chunsoft or The Pokémon Company.
+
+If you distribute this application, keep this file and `THIRD_PARTY_NOTICES.md`
+with the distribution so recipients know the MIT license applies to the code,
+not to the bundled artwork.

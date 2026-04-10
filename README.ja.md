@@ -13,6 +13,8 @@
 
 English [README.md](README.md)
 
+**ライセンス:** 本リポジトリの**プログラムのソースコード**は [MIT License](LICENSE)（ファイル先頭の MIT 条項）です。**同梱のスプライト画像**は MIT の対象外で、**第三者の条件**（PMD Collab 由来のアセットについては [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/) 等）が適用されます。詳細は [`LICENSE`](LICENSE)、[`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)、[PMD Collab About](https://sprites.pmdcollab.org/#/About) を参照してください。ポケモンは任天堂 / ゲームフリーク / ポケモンの商標です。本プロジェクトはファン作品であり公式とは無関係です。
+
 **Homebrew:**
 
 ```bash
