@@ -51,7 +51,7 @@ struct SettingsView: View {
                 VStack(spacing: 4) {
                     Text("PokeBar")
                         .font(.system(size: 14, weight: .semibold))
-                    Text("Version 2.0.0")
+                    Text("Version 2.1.0")
                         .font(.system(size: 11))
                         .foregroundColor(.secondary)
                     Text(L10n.tr("settings.tagline", language: preferences.appLanguage))
