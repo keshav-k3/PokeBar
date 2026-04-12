@@ -1,7 +1,7 @@
 # PokeBar
 
 <p align="center">
-  <img alt="Version" src="https://img.shields.io/badge/version-v2.0.1-blue" />
+  <img alt="Version" src="https://img.shields.io/badge/version-v2.1.0-blue" />
   <img alt="Languages" src="https://img.shields.io/badge/languages-EN%20%7C%20JP-success" />
 </p>
 
@@ -22,8 +22,6 @@ brew install --cask keshav-k3/tap/pokebar
 ```
 
 **直接ダウンロード:** [最新リリース](https://github.com/keshav-k3/PokeBar/releases/latest)
-
-**現在対応しているポケモン:** ピカチュウ、ヒトカゲ、ゼニガメ、フシギダネ、プリン、コダック、イーブイ、ミジュマル、カイリュー、カビゴン
 
 <div align="center">
   <h3>ポケモンを選ぶ</h3>
